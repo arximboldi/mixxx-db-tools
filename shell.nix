@@ -1,16 +1,20 @@
-{ nixpkgs ? (import <nixpkgs> {}).fetchFromGitHub {
-    owner  = "NixOS";
-    repo   = "nixpkgs";
-    rev    = "d0d905668c010b65795b57afdf7f0360aac6245b";
-    sha256 = "1kqxfmsik1s1jsmim20n5l4kq6wq8743h5h17igfxxbbwwqry88l";
-  }}:
+{
+  rev        ? "72d8853228c9758820c39b8659415b6d89279493",
+  sha256     ? "10r5zh0052apd90riimaly2xc9d4w5p9g81s9nhjk12kirf6ihcs",
+  nixpkgs    ? builtins.fetchTarball {
+    name   = "nixpkgs-${rev}";
+    url    = "https://github.com/nixos/nixpkgs/archive/${rev}.tar.gz";
+    sha256 = sha256;
+  }
+}:
 
 with import nixpkgs {};
 
 stdenv.mkDerivation rec {
   name = "dev";
   buildInputs = [
-    (python.withPackages (ps: with ps; [
+    sqlitebrowser
+    (python3.withPackages (ps: with ps; [
       tqdm
     ]))
   ];

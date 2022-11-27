@@ -19,6 +19,7 @@ import sqlite3
 logger = logging.getLogger(__name__)
 
 TRANSFORMS = [
+    # Old symlinks
     (
         '/home/raskolnikov/media/mpd/music/alexandria',
         '/media/raskolnikov/alexandria/musica',
@@ -30,6 +31,27 @@ TRANSFORMS = [
     (
         '/var/lib/mpd/music/hd-raskolnikov',
         '/media/raskolnikov/alexandria/musica',
+    ),
+    # Moving stuff to new locations...
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/run/media/raskolnikov/aleph/musica/unsorted/2017',
+    ),
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/run/media/raskolnikov/aleph/musica/unsorted/2018',
+    ),
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/run/media/raskolnikov/aleph/musica/unsorted/2019',
+    ),
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/run/media/raskolnikov/aleph/musica/unsorted/2020',
+    ),
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/run/media/raskolnikov/aleph/musica/unsorted/2021',
     ),
 ]
 

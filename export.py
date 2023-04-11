@@ -96,7 +96,7 @@ def create_playlist(filenames):
 def export_file(db, tid, files):
     # if we already copied this file, just return the target location
     if tid in files:
-        logger.info("already exported: %s, %s", tid, files[tid])
+        logger.debug("already exported: %s, %s", tid, files[tid])
         return files[tid]
 
     # otherwise copy the file and return the resulting filename
@@ -111,7 +111,7 @@ def export_file(db, tid, files):
       WHERE id=?
     ''', (location,)).fetchone()
 
-    logger.info("exporting track: %s, \"%s\"", tid, path_str)
+    logger.debug("exporting track: %s, \"%s\"", tid, path_str)
 
     # https://github.com/syncthing/syncthing/blob/8f8e8a92858ebb285fada3a09b568a04ec4cd132/lib/protocol/nativemodel_darwin.go#L8
     # https://stackoverflow.com/questions/3194516/replace-special-characters-with-ascii-equivalent
@@ -119,15 +119,15 @@ def export_file(db, tid, files):
     dst_file=EXPORT_FOLDER_TRACKS / sanitize_filename(unidecode(
         "%s__%g__%s__%s%s" % (tid, bpm, artist, title, src_file.suffix)
     ))
-    logger.info("copying:\n  %s\n  %s", src_file, dst_file)
+    logger.debug("copying:\n  %s\n  %s", src_file, dst_file)
 
     if dst_file.exists() and src_file.stat().st_size == dst_file.stat().st_size:
-        logger.info("file already exists: %s", dst_file)
+        logger.debug("file already exists: %s", dst_file)
     else:
         try:
             shutil.copyfile(src_file, dst_file)
         except FileNotFoundError:
-            logger.warn("file not found: %s", src_file)
+            logger.warning("file not found: %s", src_file)
 
     files[tid] = dst_file
     return dst_file
@@ -157,7 +157,7 @@ def export_playlist(db, pid, name, file_db):
     save_file(playlist_file, playlist)
 
 def main():
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
     db = sqlite3.connect('./mixxxdb.sqlite')
 
@@ -180,7 +180,7 @@ def main():
     logger.info("cleaning up old files")
     for f in old_files:
         if f not in new_files:
-            logger.info("removing old file: %s", f)
+            logger.debug("removing old file: %s", f)
             os.remove(f)
 
 if __name__ == '__main__':

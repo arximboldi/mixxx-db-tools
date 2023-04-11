@@ -34,6 +34,14 @@ TRANSFORMS = [
     ),
     # Moving stuff to new locations...
     (
+        '/media/raskolnikov/alexandria/musica',
+        '/run/media/raskolnikov/aleph/musica',
+    ),
+    (
+        '/run/media/raskolnikov/alexandria/musica',
+        '/run/media/raskolnikov/aleph/musica',
+    ),
+    (
         '/home/raskolnikov/sync/music/unsorted',
         '/run/media/raskolnikov/aleph/musica/unsorted/2017',
     ),

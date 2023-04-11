@@ -16,6 +16,7 @@ stdenv.mkDerivation rec {
     sqlitebrowser
     (python3.withPackages (ps: with ps; [
       tqdm
+      unidecode
     ]))
   ];
   shellHook = ''

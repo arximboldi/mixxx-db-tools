@@ -20,6 +20,8 @@ import shutil
 import pathlib
 import unicodedata
 
+from unidecode import unidecode
+
 logger = logging.getLogger(__name__)
 
 EXPORT_FOLDER=pathlib.Path('/home/raskolnikov/sync/music-export')
@@ -66,10 +68,10 @@ def export_file(db, tid, files):
     logger.info("exporting track: %s, \"%s\"", tid, path_str)
 
     # https://github.com/syncthing/syncthing/blob/8f8e8a92858ebb285fada3a09b568a04ec4cd132/lib/protocol/nativemodel_darwin.go#L8
+    # https://stackoverflow.com/questions/3194516/replace-special-characters-with-ascii-equivalent
     src_file=pathlib.Path(path_str)
-    dst_file=EXPORT_FOLDER_TRACKS / unicodedata.normalize(
-        'NFD',
-        ("%s__%g__%s__%s%s" % (tid, bpm, artist, title, src_file.suffix))
+    dst_file=EXPORT_FOLDER_TRACKS / unidecode(
+        "%s__%g__%s__%s%s" % (tid, bpm, artist, title, src_file.suffix)
     )
     logger.info("copying:\n  %s\n  %s", src_file, dst_file)
 
@@ -116,14 +118,24 @@ def main():
     EXPORT_FOLDER_TRACKS.mkdir(parents=True, exist_ok=True)
     EXPORT_FOLDER_PLISTS.mkdir(parents=True, exist_ok=True)
 
+    old_files = [f for f in EXPORT_FOLDER_TRACKS.iterdir() if f.is_file()]
+    file_db = {}
+
     playlists = db.execute('''
       SELECT id, name
       FROM Playlists
       WHERE hidden = 0
     ''')
-    files = {}
+
     for pid, name in playlists:
-        export_playlist(db, pid, name, files)
+        export_playlist(db, pid, name, file_db)
+
+    new_files=set(file_db.values())
+    logger.info("cleaning up old files")
+    for f in old_files:
+        if f not in new_files:
+            logger.info("removing old file: %s", f)
+            os.remove(f)
 
 if __name__ == '__main__':
     main()

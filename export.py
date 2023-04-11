@@ -18,6 +18,7 @@ import re
 import sys
 import shutil
 import pathlib
+import unicodedata
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +65,12 @@ def export_file(db, tid, files):
 
     logger.info("exporting track: %s, \"%s\"", tid, path_str)
 
+    # https://github.com/syncthing/syncthing/blob/8f8e8a92858ebb285fada3a09b568a04ec4cd132/lib/protocol/nativemodel_darwin.go#L8
     src_file=pathlib.Path(path_str)
-    dst_file=EXPORT_FOLDER_TRACKS / ("%s__%g__%s__%s%s" % (tid, bpm, artist, title, src_file.suffix))
+    dst_file=EXPORT_FOLDER_TRACKS / unicodedata.normalize(
+        'NFD',
+        ("%s__%g__%s__%s%s" % (tid, bpm, artist, title, src_file.suffix))
+    )
     logger.info("copying:\n  %s\n  %s", src_file, dst_file)
 
     if dst_file.exists() and src_file.stat().st_size == dst_file.stat().st_size:

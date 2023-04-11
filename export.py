@@ -117,7 +117,11 @@ def export_file(db, tid, files):
     # https://stackoverflow.com/questions/3194516/replace-special-characters-with-ascii-equivalent
     src_file=pathlib.Path(path_str)
     dst_file=EXPORT_FOLDER_TRACKS / sanitize_filename(unidecode(
-        "%s__%g__%s__%s%s" % (tid, bpm, artist, title, src_file.suffix)
+        '__'.join([
+            "%g" % (attr,) if isinstance(attr, float) else str(attr)
+            for attr in [artist, title, bpm, tid]
+            if bool(attr)
+        ]) + src_file.suffix
     ))
     logger.debug("copying:\n  %s\n  %s", src_file, dst_file)
 

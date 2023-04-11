@@ -28,6 +28,52 @@ EXPORT_FOLDER=pathlib.Path('/home/raskolnikov/sync/music-export')
 EXPORT_FOLDER_TRACKS=EXPORT_FOLDER / 'tracks'
 EXPORT_FOLDER_PLISTS=EXPORT_FOLDER / 'playlists'
 
+def sanitize_filename(filename):
+    """Return a fairly safe version of the filename.
+
+    We don't limit ourselves to ascii, because we want to keep municipality
+    names, etc, but we do want to get rid of anything potentially harmful,
+    and make sure we do not exceed Windows filename length limits.
+    Hence a less safe blacklist, rather than a whitelist.
+    """
+    blacklist = ["\\", "/", ":", "*", "?", "\"", "<", ">", "|", "\0"]
+    reserved = [
+        "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5",
+        "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5",
+        "LPT6", "LPT7", "LPT8", "LPT9",
+    ]  # Reserved words on Windows
+    filename = "".join(c for c in filename if c not in blacklist)
+    # Remove all charcters below code point 32
+    filename = "".join(c for c in filename if 31 < ord(c))
+    filename = unicodedata.normalize("NFKD", filename)
+    filename = filename.rstrip(". ")  # Windows does not allow these at end
+    filename = filename.strip()
+    if all([x == "." for x in filename]):
+        filename = "__" + filename
+    if filename in reserved:
+        filename = "__" + filename
+    if len(filename) == 0:
+        filename = "__"
+    if len(filename) > 255:
+        parts = re.split(r"/|\\", filename)[-1].split(".")
+        if len(parts) > 1:
+            ext = "." + parts.pop()
+            filename = filename[:-len(ext)]
+        else:
+            ext = ""
+        if filename == "":
+            filename = "__"
+        if len(ext) > 254:
+            ext = ext[254:]
+        maxl = 255 - len(ext)
+        filename = filename[:maxl]
+        filename = filename + ext
+        # Re-check last character (if there was no extension)
+        filename = filename.rstrip(". ")
+        if len(filename) == 0:
+            filename = "__"
+    return filename
+
 def create_playlist(filenames):
     """Create a PLS playlist from filenames."""
     yield '[playlist]\n\n'
@@ -70,9 +116,9 @@ def export_file(db, tid, files):
     # https://github.com/syncthing/syncthing/blob/8f8e8a92858ebb285fada3a09b568a04ec4cd132/lib/protocol/nativemodel_darwin.go#L8
     # https://stackoverflow.com/questions/3194516/replace-special-characters-with-ascii-equivalent
     src_file=pathlib.Path(path_str)
-    dst_file=EXPORT_FOLDER_TRACKS / unidecode(
+    dst_file=EXPORT_FOLDER_TRACKS / sanitize_filename(unidecode(
         "%s__%g__%s__%s%s" % (tid, bpm, artist, title, src_file.suffix)
-    )
+    ))
     logger.info("copying:\n  %s\n  %s", src_file, dst_file)
 
     if dst_file.exists() and src_file.stat().st_size == dst_file.stat().st_size:

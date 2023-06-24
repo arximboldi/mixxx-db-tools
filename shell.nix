@@ -29,5 +29,6 @@ stdenv.mkDerivation rec {
     alias load="cp ~/.mixxx/mixxxdb.sqlite ./mixxxdb.sqlite"
     alias restore="cp ./mixxxdb.sqlite.backup ~/.mixxx/mixxxdb.sqlite"
     alias next="cp ./mixxxdb.fixed.sqlite ./mixxxdb.sqlite"
+    alias backup="cp ./mixxxdb.sqlite ./mixxxdb.sqlite.backup.$(date '+%Y-%m-%d')"
   '';
 }

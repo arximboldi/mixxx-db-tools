@@ -27,14 +27,17 @@ import sqlite3
 logger = logging.getLogger(__name__)
 
 def relocate_file(db, tid):
-    # otherwise copy the file and return the resulting filename
-    location, artist, title, bpm = db.execute('''
-      SELECT location, artist, title, bpm
+    all_attrs = db.execute('''
+      SELECT *
       FROM library
       WHERE id=?
     ''', (tid,)).fetchone()
-    all_attrs = db.execute('''
-      SELECT *
+    if all_attrs == None:
+        logger.error("Pretty bad, no track found for ID: %s", tid)
+        return
+
+    location, artist, title, bpm = db.execute('''
+      SELECT location, artist, title, bpm
       FROM library
       WHERE id=?
     ''', (tid,)).fetchone()
@@ -63,26 +66,26 @@ def relocate_file(db, tid):
             best_match_rank = rank
             best_match = match
 
+    if not best_match:
+        logger.warning("no alternative found for: %s", path_str)
+        return
+
     new_location, = db.execute('''
       SELECT location
       FROM library
       WHERE id=?
-    ''', (match[0],)).fetchone()
+    ''', (best_match[0],)).fetchone()
     new_path_str, = db.execute('''
       SELECT location
       FROM track_locations
       WHERE id=?
     ''', (new_location,)).fetchone()
 
-    logger.debug("best match: %s", match)
+    logger.debug("best match: %s", best_match)
     logger.info("new path: %s", new_path_str)
-
-    if not best_match:
-        logger.warning("no alternative found for: %s", path_str)
-    else:
-        db.execute('''
-          UPDATE library SET location=? WHERE id=?
-        ''', (new_location, tid))
+    db.execute('''
+      UPDATE library SET location=? WHERE id=?
+    ''', (new_location, tid))
 
 def relocate_playlist(db, pid, name):
     tracks = db.execute('''

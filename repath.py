@@ -16,6 +16,7 @@ import os
 import shutil
 import logging
 import sqlite3
+import pathlib
 logger = logging.getLogger(__name__)
 
 TRANSFORMS = [
@@ -97,7 +98,7 @@ def main():
                 db.execute('''
                   DELETE FROM track_locations WHERE id=?
                 ''', (id,))
-            else:
+            elif not pathlib.Path(location).exists():
                 logger.info("no replacement for: %s", location)
 
     logger.info("commiting")

@@ -11,8 +11,12 @@
 # dedup.py
 # --------
 #
+# This finds libary entires that share the same location, and removes
+# one of them, picking the best one.
+#
 # This is a little tool for fixing Mixxx data-bases that has been
-# corrupted due to the abuse of symlinks.
+# corrupted due to the abuse of symlinks, or sometimes this happens
+# naturally after running the `repath.py` script.
 #
 # This problem can occur when a folder that is in the data-base
 # contain symlinks to another folder.  When later that other folder is
@@ -63,9 +67,16 @@ def main():
         get_bpm_error   = lambda x: abs(get_bpm(x) * 2 -
                                         round(get_bpm(x) * 2)) \
                                     if get_bpm(x) else 2
+        get_in_playlist = lambda x: db.execute('''
+          SELECT COUNT(*) FROM PlaylistTracks
+          WHERE track_id=?
+        ''', (get_id(x),)).fetchone()[0]
+        get_rank        = lambda x: (get_in_playlist(x) * 10 +
+                                     get_timesplayed(x))
 
         # remove the duplicates
-        best_id = get_id(max(res, key=get_timesplayed))
+        best_id = get_id(max(res, key=get_rank))
+        logger.info("replacing other ids with: %s", best_id)
         for item in res:
             id = get_id(item)
             if id == best_id: continue

@@ -6,10 +6,12 @@
 # it under the terms of the MIT License, as detailed in the LICENSE
 # file located at the root of this source code distribution,
 # or here: <https://github.com/arximboldi/lager/blob/master/LICENSE>
-#
 
 # forget.py
 # ---------
+#
+# Remove files that are marked as deleted and are not referenced from
+# any playslist.
 
 import sys
 import os

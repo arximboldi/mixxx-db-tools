@@ -10,6 +10,13 @@
 
 # repath.py
 # ---------
+#
+# After you've moved files from one folder to another, Mixxx doesn't
+# always realize that the old and the new one are the same file.  This
+# script looks for files that have a location with the old prefix
+# path, and changes the location so that it matches the new prefix.
+#
+# It doesn't delete the duplicates. For that, run dedupe.py
 
 import sys
 import os

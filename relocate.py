@@ -10,6 +10,11 @@
 
 # relocate.py
 # -----------
+#
+# Goes through every file that is referenced in playlists and that is
+# missing, and tries to find other entries that are similar and could
+# replace it, using heuristics (artist name, track name, etc.), not
+# necessarily the same file...
 
 import os.path
 import re

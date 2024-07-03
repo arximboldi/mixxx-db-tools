@@ -24,6 +24,7 @@ import shutil
 import logging
 import sqlite3
 import pathlib
+
 logger = logging.getLogger(__name__)
 
 TRANSFORMS = [
@@ -68,6 +69,14 @@ TRANSFORMS = [
     (
         '/home/raskolnikov/sync/music/unsorted',
         '/run/media/raskolnikov/aleph/musica/unsorted/2021',
+    ),
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/run/media/raskolnikov/aleph/musica/unsorted/2022',
+    ),
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/run/media/raskolnikov/aleph/musica/unsorted/2023',
     ),
 ]
 

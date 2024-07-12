@@ -31,7 +31,6 @@ def main():
     db.execute('''
       DELETE FROM track_locations
       WHERE fs_deleted=1
-        AND id NOT IN (SELECT track_id FROM track_analysis)
         AND id NOT IN (SELECT location
                        FROM library
                        WHERE id IN (SELECT track_id FROM PlaylistTracks)

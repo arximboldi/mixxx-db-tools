@@ -24,11 +24,27 @@ stdenv.mkDerivation rec {
     export PYTHONIOENCODING=utf8
     addToSearchPath PATH "$REPO_ROOT"
 
+    function make-unique() {
+        name=$1
+        if [[ -e $name || -L $name ]]
+        then
+            i=0
+            while [[ -e $name-$i || -L $name-$i ]] ; do
+                let i++
+            done
+            name=$name-$i
+        fi
+        echo $name
+    }
+
     alias save="cp ~/.mixxx/mixxxdb.sqlite ./mixxxdb.sqlite.backup && \
                 cp ./mixxxdb.fixed.sqlite ~/.mixxx/mixxxdb.sqlite"
     alias load="cp ~/.mixxx/mixxxdb.sqlite ./mixxxdb.sqlite"
     alias restore="cp ./mixxxdb.sqlite.backup ~/.mixxx/mixxxdb.sqlite"
     alias next="cp ./mixxxdb.fixed.sqlite ./mixxxdb.sqlite"
-    alias backup="cp ./mixxxdb.sqlite ./mixxxdb.sqlite.backup.$(date '+%Y-%m-%d')"
+
+    function backup() {
+        cp ./mixxxdb.sqlite "$(make-unique "./mixxxdb.sqlite.backup.$(date '+%Y-%m-%d')")"
+    }
   '';
 }

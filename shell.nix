@@ -17,6 +17,7 @@ stdenv.mkDerivation rec {
     (python3.withPackages (ps: with ps; [
       tqdm
       unidecode
+      m3u8
     ]))
   ];
   shellHook = ''

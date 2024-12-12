@@ -189,7 +189,7 @@ def export_playlist(settings, db, pid, name, file_db):
     logger.info("exporting playlist: %s", playlist_file)
 
     files = [
-        '..' / export_file(settings, db, tid, file_db).relative_to(EXPORT_FOLDER)
+        '..' / export_file(settings, db, tid, file_db).relative_to(settings.base)
         for tid, tpos in tracks
     ]
     playlist = create_playlist(files)

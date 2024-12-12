@@ -21,6 +21,7 @@ import pathlib
 import unicodedata
 import subprocess
 import ffmpy
+import itertools
 
 from unidecode import unidecode
 
@@ -43,6 +44,7 @@ class Settings:
         self.plists = self.path / 'playlists'
         self.tracks.mkdir(parents=True, exist_ok=True)
         self.plists.mkdir(parents=True, exist_ok=True)
+
 
 def sanitize_filename(filename):
     """Return a fairly safe version of the filename.
@@ -109,11 +111,11 @@ def create_playlist(filenames):
         'Version=2\n'
     ) % num
 
-def export_file(settings, db, tid, files):
+def export_file(settings, db, tid, file_db):
     # if we already copied this file, just return the target location
-    if tid in files:
-        logger.debug("already exported: %s, %s", tid, files[tid])
-        return files[tid]
+    if ('track', tid) in file_db:
+        logger.debug("already exported: %s, %s", tid, file_db[('track', tid)])
+        return file_db[('track', tid)]
 
     # otherwise copy the file and return the resulting filename
     location, artist, title, bpm = db.execute('''
@@ -168,7 +170,7 @@ def export_file(settings, db, tid, files):
                 pass
             raise
 
-    files[tid] = dst_file
+    file_db[('track', tid)] = dst_file
     return dst_file
 
 
@@ -179,6 +181,10 @@ def save_file(fname, content):
 
 
 def export_playlist(settings, db, pid, name, file_db):
+    if ('plist', pid) in file_db:
+        logger.error("duplicate plist: %s (%s)", pid, name)
+        return file_db['plist', pid]
+
     tracks = db.execute('''
       SELECT track_id, position
       FROM PlaylistTracks
@@ -189,18 +195,26 @@ def export_playlist(settings, db, pid, name, file_db):
     logger.info("exporting playlist: %s", playlist_file)
 
     files = [
-        '..' / export_file(settings, db, tid, file_db).relative_to(settings.base)
+        '..' / export_file(settings, db, tid, file_db).relative_to(settings.path)
         for tid, tpos in tracks
     ]
     playlist = create_playlist(files)
     save_file(playlist_file, playlist)
+    file_db[('plist', pid)] = playlist_file
+    return playlist_file
+
 
 def main(compat = False):
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
     db = sqlite3.connect('./mixxxdb.sqlite')
     settings = Settings(compat)
-    old_files = [f for f in settings.tracks.iterdir() if f.is_file()]
+    old_files = [
+        f for f in itertools.chain(
+            settings.tracks.iterdir(),
+            settings.plists.iterdir())
+        if f.is_file()
+    ]
     file_db = {}
 
     playlists = db.execute('''

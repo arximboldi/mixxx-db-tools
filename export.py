@@ -19,14 +19,30 @@ import sys
 import shutil
 import pathlib
 import unicodedata
+import subprocess
+import ffmpy
 
 from unidecode import unidecode
 
 logger = logging.getLogger(__name__)
 
 EXPORT_FOLDER=pathlib.Path('/home/raskolnikov/sync/music-export')
-EXPORT_FOLDER_TRACKS=EXPORT_FOLDER / 'tracks'
-EXPORT_FOLDER_PLISTS=EXPORT_FOLDER / 'playlists'
+EXPORT_FOLDER_COMPAT=pathlib.Path('/home/raskolnikov/sync/music-export/compat')
+
+class Settings:
+    # When compat is True, we will convert files to mp3 for
+    # compatibility with older players
+    compat = False
+    path = None
+    tracks = None
+    plists = None
+    def __init__(self, compat = False):
+        self.compat = compat
+        self.path = EXPORT_FOLDER_COMPAT if compat else EXPORT_FOLDER
+        self.tracks = self.path / 'tracks'
+        self.plists = self.path / 'playlists'
+        self.tracks.mkdir(parents=True, exist_ok=True)
+        self.plists.mkdir(parents=True, exist_ok=True)
 
 def sanitize_filename(filename):
     """Return a fairly safe version of the filename.
@@ -93,7 +109,7 @@ def create_playlist(filenames):
         'Version=2\n'
     ) % num
 
-def export_file(db, tid, files):
+def export_file(settings, db, tid, files):
     # if we already copied this file, just return the target location
     if tid in files:
         logger.debug("already exported: %s, %s", tid, files[tid])
@@ -115,23 +131,42 @@ def export_file(db, tid, files):
 
     # https://github.com/syncthing/syncthing/blob/8f8e8a92858ebb285fada3a09b568a04ec4cd132/lib/protocol/nativemodel_darwin.go#L8
     # https://stackoverflow.com/questions/3194516/replace-special-characters-with-ascii-equivalent
-    src_file=pathlib.Path(path_str)
-    dst_file=EXPORT_FOLDER_TRACKS / sanitize_filename(unidecode(
+    src_file = pathlib.Path(path_str)
+    dst_ext = ".mp3" if settings.compat else src_file.suffix
+    dst_file = settings.tracks / sanitize_filename(unidecode(
         '__'.join([
             "%g" % (attr,) if isinstance(attr, float) else str(attr)
             for attr in [artist, title, bpm, tid]
             if bool(attr)
-        ]) + src_file.suffix
+        ]) + dst_ext
     ))
     logger.debug("copying:\n  %s\n  %s", src_file, dst_file)
 
-    if dst_file.exists() and src_file.stat().st_size == dst_file.stat().st_size:
+    if dst_file.exists() and (
+            settings.compat or src_file.stat().st_size == dst_file.stat().st_size
+    ):
         logger.debug("file already exists: %s", dst_file)
     else:
         try:
-            shutil.copyfile(src_file, dst_file)
+            if settings.compat and src_file.suffix.lower() != ".mp3":
+                logger.info("converting: %s", dst_file)
+                ffmpy.FFmpeg(
+                    inputs={src_file: '-err_detect ignore_err'}, # add -nv when file breaks
+                    outputs={dst_file: '-b:a 320k -ignore_unknown '
+                             + ('-metadata artist="' + artist + '" ' if artist else '')
+                             + ('-metadata title="' + title +'"' if title else '')},
+                ).run()
+            else:
+                shutil.copyfile(src_file, dst_file)
         except FileNotFoundError:
             logger.warning("file not found: %s", src_file)
+        except:
+            logger.error("error while copying file: %s", dst_file)
+            try:
+                os.remove(dst_file)
+            except:
+                pass
+            raise
 
     files[tid] = dst_file
     return dst_file
@@ -143,32 +178,29 @@ def save_file(fname, content):
             f.write(txt)
 
 
-def export_playlist(db, pid, name, file_db):
+def export_playlist(settings, db, pid, name, file_db):
     tracks = db.execute('''
       SELECT track_id, position
       FROM PlaylistTracks
       WHERE playlist_id=?
       ORDER BY position
     ''', (pid,))
-    playlist_file = EXPORT_FOLDER_PLISTS / ("%s.pls" % name)
+    playlist_file = settings.plists / ("%s.pls" % name)
     logger.info("exporting playlist: %s", playlist_file)
 
     files = [
-        '..' / export_file(db, tid, file_db).relative_to(EXPORT_FOLDER)
+        '..' / export_file(settings, db, tid, file_db).relative_to(EXPORT_FOLDER)
         for tid, tpos in tracks
     ]
     playlist = create_playlist(files)
     save_file(playlist_file, playlist)
 
-def main():
+def main(compat = False):
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
     db = sqlite3.connect('./mixxxdb.sqlite')
-
-    EXPORT_FOLDER_TRACKS.mkdir(parents=True, exist_ok=True)
-    EXPORT_FOLDER_PLISTS.mkdir(parents=True, exist_ok=True)
-
-    old_files = [f for f in EXPORT_FOLDER_TRACKS.iterdir() if f.is_file()]
+    settings = Settings(compat)
+    old_files = [f for f in settings.tracks.iterdir() if f.is_file()]
     file_db = {}
 
     playlists = db.execute('''
@@ -178,7 +210,7 @@ def main():
     ''')
 
     for pid, name in playlists:
-        export_playlist(db, pid, name, file_db)
+        export_playlist(settings, db, pid, name, file_db)
 
     new_files=set(file_db.values())
     logger.info("cleaning up old files")

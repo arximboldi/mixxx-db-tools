@@ -1,6 +1,6 @@
 {
-  rev        ? "72d8853228c9758820c39b8659415b6d89279493",
-  sha256     ? "10r5zh0052apd90riimaly2xc9d4w5p9g81s9nhjk12kirf6ihcs",
+  rev ? "d032c1a6dfad4eedec7e35e91986becc699d7d69", # nixos-24.05 incl CVE-2024-6387 fix
+  sha256 ? "14g286p6dh0j1qbkmw2520si2lbbjmbmr119496jkmpk6516n3v7",
   nixpkgs    ? builtins.fetchTarball {
     name   = "nixpkgs-${rev}";
     url    = "https://github.com/nixos/nixpkgs/archive/${rev}.tar.gz";
@@ -18,6 +18,7 @@ stdenv.mkDerivation rec {
       tqdm
       unidecode
       m3u8
+      ffmpy
     ]))
   ];
   shellHook = ''

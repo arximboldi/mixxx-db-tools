@@ -28,7 +28,7 @@ from unidecode import unidecode
 logger = logging.getLogger(__name__)
 
 EXPORT_FOLDER=pathlib.Path('/home/raskolnikov/sync/music-export')
-EXPORT_FOLDER_COMPAT=pathlib.Path('/home/raskolnikov/sync/music-export/compat')
+EXPORT_FOLDER_COMPAT=pathlib.Path('/home/raskolnikov/sync/music-export')
 
 class Settings:
     # When compat is True, we will convert files to mp3 for

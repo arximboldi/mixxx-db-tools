@@ -52,31 +52,35 @@ TRANSFORMS = [
     ),
     (
         '/home/raskolnikov/sync/music/unsorted',
-        '/run/media/raskolnikov/aleph/musica/unsorted/2017',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2017',
     ),
     (
         '/home/raskolnikov/sync/music/unsorted',
-        '/run/media/raskolnikov/aleph/musica/unsorted/2018',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2018',
     ),
     (
         '/home/raskolnikov/sync/music/unsorted',
-        '/run/media/raskolnikov/aleph/musica/unsorted/2019',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2019',
     ),
     (
         '/home/raskolnikov/sync/music/unsorted',
-        '/run/media/raskolnikov/aleph/musica/unsorted/2020',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2020',
     ),
     (
         '/home/raskolnikov/sync/music/unsorted',
-        '/run/media/raskolnikov/aleph/musica/unsorted/2021',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2021',
     ),
     (
         '/home/raskolnikov/sync/music/unsorted',
-        '/run/media/raskolnikov/aleph/musica/unsorted/2022',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2022',
     ),
     (
         '/home/raskolnikov/sync/music/unsorted',
-        '/run/media/raskolnikov/aleph/musica/unsorted/2023',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2023',
+    ),
+    (
+        '/home/raskolnikov/sync/music/unsorted',
+        '/home/raskolnikov/sync/aleph/musica/unsorted/2024',
     ),
 ]
 

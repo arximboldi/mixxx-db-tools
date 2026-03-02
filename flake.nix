@@ -48,11 +48,19 @@
                 echo $name
             }
 
-            alias save="cp ~/.mixxx/mixxxdb.sqlite ./mixxxdb.sqlite.backup && \
-                        cp ./mixxxdb.fixed.sqlite ~/.mixxx/mixxxdb.sqlite"
-            alias load="cp ~/.mixxx/mixxxdb.sqlite ./mixxxdb.sqlite"
-            alias restore="cp ./mixxxdb.sqlite.backup ~/.mixxx/mixxxdb.sqlite"
-            alias next="cp ./mixxxdb.fixed.sqlite ./mixxxdb.sqlite"
+            function save() {
+                cp ~/.mixxx/mixxxdb.sqlite ./mixxxdb.sqlite.backup && \
+                cp ./mixxxdb.fixed.sqlite ~/.mixxx/mixxxdb.sqlite
+            }
+            function load() {
+                cp ~/.mixxx/mixxxdb.sqlite ./mixxxdb.sqlite
+            }
+            function restore() {
+                cp ./mixxxdb.sqlite.backup ~/.mixxx/mixxxdb.sqlite
+            }
+            function next() {
+                cp ./mixxxdb.fixed.sqlite ./mixxxdb.sqlite
+            }
 
             function backup() {
                 cp ./mixxxdb.sqlite "$(make-unique "./mixxxdb.sqlite.backup.$(date '+%Y-%m-%d')")"
